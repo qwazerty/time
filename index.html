@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Heure locale avec fuseau</title>
+  <style>
+    body {
+      background-color: #fff;
+      color: #000;
+      font-family: 'Helvetica Neue', sans-serif;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      padding: 1em; /* Pour éviter que le contenu touche trop les bords sur mobile */
+      box-sizing: border-box;
+    }
+    #time {
+      font-size: 14em;
+      font-weight: bold;
+      line-height: 1; /* pour éviter un spacing trop grand sur mobile */
+      margin: 0;
+    }
+    #date, #week {
+      font-size: 5em;
+      margin: 0.3em 0;
+    }
+    #controls {
+      margin-top: 1em;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    select {
+      font-size: 1em;
+      padding: 0.2em;
+      margin: 0.2em;
+      max-width: 90vw;
+      width: auto;
+    }
+    label {
+      font-size: 1em;
+    }
+
+    /* Media query pour petits écrans (largeur ≤ 600px) */
+    @media (max-width: 600px) {
+      #time {
+        font-size: 6em;
+      }
+      #date, #week {
+        font-size: 2em;
+      }
+      label {
+        font-size: 0.9em;
+      }
+      select {
+        font-size: 0.9em;
+        padding: 0.25em;
+      }
+    }
+
+    /* Media query pour très petits écrans (largeur ≤ 350px) */
+    @media (max-width: 350px) {
+      #time {
+        font-size: 4.5em;
+      }
+      #date, #week {
+        font-size: 1.5em;
+      }
+      label {
+        font-size: 0.8em;
+      }
+      select {
+        font-size: 0.8em;
+        padding: 0.2em;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Affichage du temps, date et semaine -->
+  <div id="time">--:--:--</div>
+  <div id="date">---</div>
+  <div id="week">Semaine --</div>
+
+  <!-- Sélecteur de fuseaux horaires (placé en bas) -->
+  <div id="controls">
+    <label for="timezone-select">Fuseau horaire : </label>
+    <select id="timezone-select"></select>
+  </div>
+
+  <script>
+    // Récupère toutes les zones IANA disponibles via l'API Intl
+    let TIMEZONES = [];
+    if (typeof Intl.supportedValuesOf === 'function') {
+      TIMEZONES = Intl.supportedValuesOf('timeZone');
+    } else {
+      // Fallback minimal au cas où le navigateur n'implémente pas supportedValuesOf
+      TIMEZONES = [
+        "UTC", "Europe/Paris", "Europe/London", "America/New_York",
+        "America/Los_Angeles", "Asia/Tokyo", "Australia/Sydney"
+      ];
+    }
+    // Trie alphabétiquement pour faciliter la recherche
+    TIMEZONES.sort((a, b) => a.localeCompare(b));
+
+    // Lit le paramètre 'tz' dans l’URL (ex. ?tz=Europe/Paris)
+    function getTimezoneFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const tz = params.get("tz");
+      if (tz && TIMEZONES.includes(tz)) {
+        return tz;
+      }
+      return null;
+    }
+
+    // Met à jour le paramètre 'tz' dans l’URL sans recharger la page
+    function updateQueryParam(tz) {
+      const url = new URL(window.location);
+      url.searchParams.set("tz", tz);
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    // Calcule le numéro de semaine ISO (1–53) pour une date UTC
+    function getWeekNumberUTC(dateObjUTC) {
+      const d = new Date(Date.UTC(
+        dateObjUTC.getUTCFullYear(),
+        dateObjUTC.getUTCMonth(),
+        dateObjUTC.getUTCDate()
+      ));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    // Récupère les composantes (année, mois, jour, heures, minutes, secondes)
+    // d'une Date "réelle" (locale) en fonction d’un fuseau donné.
+    function getPartsInZone(date, tz) {
+      const fmt = new Intl.DateTimeFormat('en-GB', {
+        timeZone: tz,
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        second: 'numeric',
+        hour12: false
+      });
+      const parts = fmt.formatToParts(date);
+      const obj = {};
+      parts.forEach(p => {
+        if (p.type !== 'literal') {
+          obj[p.type] = parseInt(p.value, 10);
+        }
+      });
+      return {
+        year: obj.year,
+        month: obj.month,
+        day: obj.day,
+        hour: obj.hour,
+        minute: obj.minute,
+        second: obj.second
+      };
+    }
+
+    // Met à jour l’horloge selon le fuseau sélectionné
+    function updateClock() {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('fr-FR', {
+        hour12: false,
+        timeZone: currentTz
+      });
+      const dateString = now.toLocaleDateString('fr-FR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: currentTz
+      });
+      const parts = getPartsInZone(now, currentTz);
+      const utcForWeek = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+      const weekNum = getWeekNumberUTC(utcForWeek);
+
+      document.getElementById('time').textContent = timeString;
+      document.getElementById('date').textContent = dateString;
+      document.getElementById('week').textContent = `Semaine ${weekNum}`;
+    }
+
+    // Initialisation du fuseau : query param > fuseau système > UTC
+    let currentTz = getTimezoneFromQuery() ||
+                    Intl.DateTimeFormat().resolvedOptions().timeZone ||
+                    "UTC";
+
+    // Remplissage de la liste déroulante avec toutes les zones
+    const select = document.getElementById('timezone-select');
+    TIMEZONES.forEach(zone => {
+      const opt = document.createElement('option');
+      opt.value = zone;
+      // Remplace '_' par ' ' pour l'affichage
+      opt.textContent = zone.replace(/_/g, ' ');
+      if (zone === currentTz) {
+        opt.selected = true;
+      }
+      select.appendChild(opt);
+    });
+
+    // Quand on change de fuseau via la liste déroulante
+    select.addEventListener('change', e => {
+      const chosenTz = e.target.value;
+      if (TIMEZONES.includes(chosenTz)) {
+        currentTz = chosenTz;
+        updateQueryParam(chosenTz);
+        updateClock();
+      }
+    });
+
+    // Lancement du minuteur et mise à jour immédiate
+    setInterval(updateClock, 1000);
+    updateClock();
+  </script>
+</body>
+</html>
