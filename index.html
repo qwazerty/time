@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -6,9 +5,25 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Heure locale avec fuseau</title>
   <style>
+    :root {
+      --bg-color: #fff;
+      --text-color: #000;
+      --control-bg: #fff;
+      --control-text: #000;
+      --control-border: #ccc;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --control-bg: #2a2a2a;
+      --control-text: #fff;
+      --control-border: #444;
+    }
+
     body {
-      background-color: #fff;
-      color: #000;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       font-family: 'Helvetica Neue', sans-serif;
       text-align: center;
       display: flex;
@@ -17,13 +32,36 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-      padding: 1em; /* Pour éviter que le contenu touche trop les bords sur mobile */
+      padding: 1em;
       box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
+
+    #theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      font-size: 2em;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.2em;
+      transition: transform 0.2s ease;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+    }
+
+    #theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    #theme-toggle:active {
+      transform: scale(0.95);
+    }
+
     #time {
       font-size: 14em;
       font-weight: bold;
-      line-height: 1; /* pour éviter un spacing trop grand sur mobile */
+      line-height: 1;
       margin: 0;
     }
     #date, #week {
@@ -43,6 +81,10 @@
       margin: 0.2em;
       max-width: 90vw;
       width: auto;
+      background-color: var(--control-bg);
+      color: var(--control-text);
+      border: 1px solid var(--control-border);
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
     }
     label {
       font-size: 1em;
@@ -55,6 +97,11 @@
       }
       #date, #week {
         font-size: 2em;
+      }
+      #theme-toggle {
+        font-size: 1.5em;
+        top: 10px;
+        right: 10px;
       }
       label {
         font-size: 0.9em;
@@ -73,6 +120,9 @@
       #date, #week {
         font-size: 1.5em;
       }
+      #theme-toggle {
+        font-size: 1.2em;
+      }
       label {
         font-size: 0.8em;
       }
@@ -84,6 +134,9 @@
   </style>
 </head>
 <body>
+  <!-- Theme toggle button -->
+  <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
+
   <!-- Affichage du temps, date et semaine -->
   <div id="time">--:--:--</div>
   <div id="date">---</div>
@@ -110,7 +163,7 @@
     // Trie alphabétiquement pour faciliter la recherche
     TIMEZONES.sort((a, b) => a.localeCompare(b));
 
-    // Lit le paramètre 'tz' dans l’URL (ex. ?tz=Europe/Paris)
+    // Lit le paramètre 'tz' dans l'URL (ex. ?tz=Europe/Paris)
     function getTimezoneFromQuery() {
       const params = new URLSearchParams(window.location.search);
       const tz = params.get("tz");
@@ -120,10 +173,27 @@
       return null;
     }
 
-    // Met à jour le paramètre 'tz' dans l’URL sans recharger la page
+    // Met à jour le paramètre 'tz' dans l'URL sans recharger la page
     function updateQueryParam(tz) {
       const url = new URL(window.location);
       url.searchParams.set("tz", tz);
+      window.history.replaceState({}, "", url.toString());
+    }
+
+    // Lit le paramètre 'theme' dans l'URL (ex. ?theme=dark)
+    function getThemeFromQuery() {
+      const params = new URLSearchParams(window.location.search);
+      const theme = params.get("theme");
+      if (theme === "dark" || theme === "light") {
+        return theme;
+      }
+      return null;
+    }
+
+    // Met à jour le paramètre 'theme' dans l'URL sans recharger la page
+    function updateThemeQueryParam(theme) {
+      const url = new URL(window.location);
+      url.searchParams.set("theme", theme);
       window.history.replaceState({}, "", url.toString());
     }
 
@@ -141,7 +211,7 @@
     }
 
     // Récupère les composantes (année, mois, jour, heures, minutes, secondes)
-    // d'une Date "réelle" (locale) en fonction d’un fuseau donné.
+    // d'une Date "réelle" (locale) en fonction d'un fuseau donné.
     function getPartsInZone(date, tz) {
       const fmt = new Intl.DateTimeFormat('en-GB', {
         timeZone: tz,
@@ -170,7 +240,7 @@
       };
     }
 
-    // Met à jour l’horloge selon le fuseau sélectionné
+    // Met à jour l'horloge selon le fuseau sélectionné
     function updateClock() {
       const now = new Date();
       const timeString = now.toLocaleTimeString('fr-FR', {
@@ -191,6 +261,33 @@
       document.getElementById('time').textContent = timeString;
       document.getElementById('date').textContent = dateString;
       document.getElementById('week').textContent = `Semaine ${weekNum}`;
+    }
+
+    // Theme management
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      updateThemeQueryParam(theme);
+      const toggleBtn = document.getElementById('theme-toggle');
+      toggleBtn.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+
+    function initializeTheme() {
+      // Priority: URL param → localStorage → system preference → light
+      const urlTheme = getThemeFromQuery();
+      const storedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      let theme = 'light';
+      if (urlTheme) {
+        theme = urlTheme;
+      } else if (storedTheme) {
+        theme = storedTheme;
+      } else if (prefersDark) {
+        theme = 'dark';
+      }
+      
+      setTheme(theme);
     }
 
     // Initialisation du fuseau : query param > fuseau système > UTC
@@ -220,6 +317,16 @@
         updateClock();
       }
     });
+
+    // Theme toggle button event listener
+    document.getElementById('theme-toggle').addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+      setTheme(newTheme);
+    });
+
+    // Initialize theme
+    initializeTheme();
 
     // Lancement du minuteur et mise à jour immédiate
     setInterval(updateClock, 1000);
