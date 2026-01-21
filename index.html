@@ -6,334 +6,147 @@
   <title>Heure locale avec fuseau</title>
   <style>
     :root {
-      --bg-color: #fff6eb;
-      --bg-accent: #f9e0d9;
-      --text-color: #2d1f1f;
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --card-border: rgba(255, 255, 255, 0.6);
-      --shadow: 0 30px 80px rgba(118, 49, 10, 0.2);
-      --accent: #c62828;
-      --accent-dark: #8d1d1d;
-      --control-bg: rgba(255, 255, 255, 0.8);
-      --control-text: #2d1f1f;
-      --control-border: rgba(160, 115, 79, 0.3);
+      --bg-color: #fff;
+      --text-color: #000;
+      --control-bg: #fff;
+      --control-text: #000;
+      --control-border: #ccc;
     }
 
     [data-theme="dark"] {
-      --bg-color: #0c1524;
-      --bg-accent: #1c2139;
-      --text-color: #f7f7ff;
-      --card-bg: rgba(13, 22, 40, 0.85);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --shadow: 0 30px 90px rgba(0, 0, 0, 0.55);
-      --accent: #ffc857;
-      --accent-dark: #f5793b;
-      --control-bg: rgba(17, 28, 50, 0.9);
-      --control-text: #f7f7ff;
-      --control-border: rgba(255, 255, 255, 0.2);
-    }
-
-    * {
-      box-sizing: border-box;
+      --bg-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --control-bg: #2a2a2a;
+      --control-text: #fff;
+      --control-border: #444;
     }
 
     body {
-      min-height: 100vh;
-      margin: 0;
-      font-family: 'Merriweather', 'Georgia', serif;
+      background-color: var(--bg-color);
       color: var(--text-color);
-      background: linear-gradient(180deg, var(--bg-accent) 0%, var(--bg-color) 55%, #ffffff 100%);
-      overflow-x: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 3vw;
+      font-family: 'Helvetica Neue', sans-serif;
       text-align: center;
-      transition: background 0.4s ease, color 0.4s ease;
-      position: relative;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      inset: 0;
-      background-image:
-        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.5) 0, transparent 45%),
-        radial-gradient(circle at 80% 0%, rgba(255, 255, 255, 0.4) 0, transparent 45%),
-        radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.4) 0, transparent 40%);
-      pointer-events: none;
-      opacity: 0.4;
-    }
-
-    .garland {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 70px;
-      pointer-events: none;
-      background: linear-gradient(120deg, rgba(7, 70, 22, 0.6), rgba(26, 106, 37, 0.2), transparent 75%);
-      filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-      z-index: 1;
-    }
-
-    .garland::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(circle, rgba(255, 237, 157, 0.95) 20%, transparent 21%),
-        radial-gradient(circle, rgba(255, 108, 146, 0.9) 20%, transparent 22%),
-        radial-gradient(circle, rgba(136, 214, 255, 0.8) 20%, transparent 22%);
-      background-size: 110px 60px;
-      background-position: 0 5px, 40px 25px, 80px 15px;
-      animation: twinkle 5s linear infinite;
-    }
-
-    @keyframes twinkle {
-      0%, 100% {
-        opacity: 0.9;
-      }
-      50% {
-        opacity: 0.3;
-      }
-    }
-
-    .snow {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      background-image:
-        radial-gradient(2px 2px at 20px 20px, rgba(255,255,255,0.9), transparent),
-        radial-gradient(3px 3px at 40px 60px, rgba(255,255,255,0.8), transparent),
-        radial-gradient(3px 3px at 130px 80px, rgba(255,255,255,0.7), transparent),
-        radial-gradient(2px 2px at 90px 130px, rgba(255,255,255,0.6), transparent);
-      background-size: 200px 200px;
-      animation: snowfall 18s linear infinite;
-      z-index: 0;
-      opacity: 0.7;
-    }
-
-    @keyframes snowfall {
-      0% {
-        transform: translateY(-100px);
-      }
-      100% {
-        transform: translateY(100px);
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .snow,
-      .garland::after,
-      .sprite {
-        animation: none;
-      }
-    }
-
-    .sprites-layer {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .sprite {
-      position: absolute;
-      font-size: clamp(1.5rem, 3vw, 2.5rem);
-      animation: floaty var(--duration, 9s) ease-in-out infinite;
-      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.25));
-      transform-origin: center;
-      opacity: 0;
-      transition: opacity 0.9s ease;
-    }
-
-    .sprite.visible {
-      opacity: 0.85;
-    }
-
-    .sprite img {
-      width: 48px;
-      max-width: clamp(28px, 8vw, 58px);
-      height: auto;
-      display: block;
-    }
-
-    @keyframes floaty {
-      0% {
-        transform: rotate(var(--rotation, 0deg)) translate3d(0, 0, 0) scale(0.9);
-      }
-      50% {
-        transform: rotate(var(--rotation, 0deg)) translate3d(12px, -20px, 0) scale(1.05);
-      }
-      100% {
-        transform: rotate(var(--rotation, 0deg)) translate3d(-6px, 10px, 0) scale(0.95);
-      }
-    }
-
-    main {
-      width: min(100%, 960px);
-    }
-
-    .card {
-      position: relative;
-      z-index: 2;
-      border-radius: 32px;
-      padding: clamp(1.5rem, 4vw, 3.5rem);
-    }
-
-    .time-display {
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    #time {
-      font-size: clamp(3.5rem, 10vw, 8rem);
-      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
       margin: 0;
-      line-height: 1;
-      color: var(--accent);
-    }
-
-    [data-theme="dark"] #time {
-      color: var(--accent);
-      text-shadow: 0 0 18px rgba(255, 184, 122, 0.35);
-    }
-
-    #date,
-    #week {
-      margin: 0.3rem 0 0;
-      font-size: clamp(1.1rem, 4vw, 2rem);
-      font-weight: 500;
-    }
-
-    .controls {
-      text-align: center;
-      padding: 1.5rem;
-    }
-
-    #controls {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      gap: 0.8rem;
-    }
-
-    #controls label {
-      font-size: 1rem;
-      font-weight: 600;
-      margin-right: 0.5rem;
-    }
-
-    select {
-      font-size: 1rem;
-      padding: 0.6rem 2.4rem 0.6rem 0.8rem;
-      border-radius: 999px;
-      border: 1px solid var(--control-border);
-      background-color: var(--control-bg);
-      color: var(--control-text);
-      min-width: 260px;
-      appearance: none;
-      background-image: linear-gradient(45deg, transparent 50%, var(--accent) 50%), linear-gradient(135deg, var(--accent) 50%, transparent 50%);
-      background-position: calc(100% - 18px) calc(50% - 2px), calc(100% - 12px) calc(50% - 2px);
-      background-size: 6px 6px;
-      background-repeat: no-repeat;
-    }
-
-    select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.2);
+      padding: 1em;
+      box-sizing: border-box;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     #theme-toggle {
       position: fixed;
-      top: 24px;
-      right: 24px;
-      font-size: 2.2rem;
-      background: rgba(255, 255, 255, 0.65);
-      color: inherit;
-      border: 1px solid rgba(0, 0, 0, 0.1);
-      border-radius: 50%;
-      width: 56px;
-      height: 56px;
-      display: grid;
-      place-items: center;
+      top: 20px;
+      right: 20px;
+      font-size: 2em;
+      background: none;
+      border: none;
       cursor: pointer;
-      transition: transform 0.25s ease, background 0.3s ease;
-      z-index: 3;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    }
-
-    [data-theme="dark"] #theme-toggle {
-      background: rgba(0, 0, 0, 0.4);
-      border-color: rgba(255, 255, 255, 0.1);
+      padding: 0.2em;
+      transition: transform 0.2s ease;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
     }
 
     #theme-toggle:hover {
-      transform: translateY(-2px) scale(1.05);
+      transform: scale(1.1);
     }
 
     #theme-toggle:active {
       transform: scale(0.95);
     }
 
-    @media (max-width: 768px) {
-      body {
-        padding: 1.5rem;
+    #time {
+      font-size: 14em;
+      font-weight: bold;
+      line-height: 1;
+      margin: 0;
+    }
+    #date, #week {
+      font-size: 5em;
+      margin: 0.3em 0;
+    }
+    #controls {
+      margin-top: 1em;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    select {
+      font-size: 1em;
+      padding: 0.2em;
+      margin: 0.2em;
+      max-width: 90vw;
+      width: auto;
+      background-color: var(--control-bg);
+      color: var(--control-text);
+      border: 1px solid var(--control-border);
+      transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+    }
+    label {
+      font-size: 1em;
+    }
+
+    /* Media query pour petits écrans (largeur ≤ 600px) */
+    @media (max-width: 600px) {
+      #time {
+        font-size: 6em;
       }
-      #controls {
-        flex-direction: column;
-        align-items: center;
+      #date, #week {
+        font-size: 2em;
+      }
+      #theme-toggle {
+        font-size: 1.5em;
+        top: 10px;
+        right: 10px;
+      }
+      label {
+        font-size: 0.9em;
       }
       select {
-        width: 100%;
-      }
-      #controls label {
-        width: 100%;
-        margin-right: 0;
-        margin-bottom: 0.4rem;
+        font-size: 0.9em;
+        padding: 0.25em;
       }
     }
 
-    @media (max-width: 480px) {
-      #theme-toggle {
-        top: 12px;
-        right: 12px;
-        font-size: 1.6rem;
-        width: 46px;
-        height: 46px;
-      }
+    /* Media query pour très petits écrans (largeur ≤ 350px) */
+    @media (max-width: 350px) {
       #time {
-        font-size: clamp(2.5rem, 12vw, 5rem);
+        font-size: 4.5em;
       }
-      .card {
-        padding: 1.2rem;
+      #date, #week {
+        font-size: 1.5em;
+      }
+      #theme-toggle {
+        font-size: 1.2em;
+      }
+      label {
+        font-size: 0.8em;
+      }
+      select {
+        font-size: 0.8em;
+        padding: 0.2em;
       }
     }
   </style>
 </head>
 <body>
-  <div class="garland" aria-hidden="true"></div>
-  <div class="snow" aria-hidden="true"></div>
-
   <!-- Theme toggle button -->
   <button id="theme-toggle" aria-label="Toggle dark mode">🌙</button>
 
-  <main class="card">
-    <section class="time-display" aria-live="polite">
-      <div id="time">--:--:--</div>
-      <div id="date">---</div>
-      <div id="week">Semaine --</div>
-    </section>
+  <!-- Affichage du temps, date et semaine -->
+  <div id="time">--:--:--</div>
+  <div id="date">---</div>
+  <div id="week">Semaine --</div>
 
-    <section class="controls" aria-label="Sélecteur de fuseaux horaires">
-      <div id="controls">
-        <label for="timezone-select">Fuseau horaire</label>
-        <select id="timezone-select"></select>
-      </div>
-    </section>
-  </main>
+  <!-- Sélecteur de fuseaux horaires (placé en bas) -->
+  <div id="controls">
+    <label for="timezone-select">Fuseau horaire : </label>
+    <select id="timezone-select"></select>
+  </div>
 
   <script>
     // Récupère toutes les zones IANA disponibles via l'API Intl
@@ -397,7 +210,8 @@
       return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
     }
 
-    // Récupère les composantes (année, mois, jour) en fonction d'un fuseau donné
+    // Récupère les composantes (année, mois, jour, heures, minutes, secondes)
+    // d'une Date "réelle" (locale) en fonction d'un fuseau donné.
     function getPartsInZone(date, tz) {
       const fmt = new Intl.DateTimeFormat('en-GB', {
         timeZone: tz,
@@ -419,7 +233,10 @@
       return {
         year: obj.year,
         month: obj.month,
-        day: obj.day
+        day: obj.day,
+        hour: obj.hour,
+        minute: obj.minute,
+        second: obj.second
       };
     }
 
@@ -440,6 +257,7 @@
       const parts = getPartsInZone(now, currentTz);
       const utcForWeek = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
       const weekNum = getWeekNumberUTC(utcForWeek);
+
       document.getElementById('time').textContent = timeString;
       document.getElementById('date').textContent = dateString;
       document.getElementById('week').textContent = `Semaine ${weekNum}`;
@@ -507,180 +325,12 @@
       setTheme(newTheme);
     });
 
-    // Decor elements
-    const SVG_ASSETS = {
-      snowman: `<svg xmlns="http://www.w3.org/2000/svg" width="70" height="90" viewBox="0 0 70 90">
-        <circle cx="35" cy="25" r="18" fill="#fff" stroke="#e4e8f5" stroke-width="3"/>
-        <circle cx="35" cy="60" r="24" fill="#fff" stroke="#e4e8f5" stroke-width="3"/>
-        <circle cx="30" cy="20" r="3" fill="#151a26"/>
-        <circle cx="40" cy="20" r="3" fill="#151a26"/>
-        <path d="M35 24 L50 30" stroke="#f47b20" stroke-width="4" stroke-linecap="round"/>
-        <circle cx="35" cy="35" r="3" fill="#151a26"/>
-        <circle cx="35" cy="47" r="3" fill="#151a26"/>
-        <circle cx="35" cy="57" r="3" fill="#151a26"/>
-      </svg>`,
-      tree: `<svg xmlns="http://www.w3.org/2000/svg" width="70" height="90" viewBox="0 0 70 90">
-        <rect x="31" y="70" width="8" height="12" fill="#8d5524" rx="2"/>
-        <polygon points="35,6 15,40 55,40" fill="#1f8a4c"/>
-        <polygon points="35,24 10,58 60,58" fill="#2aa260"/>
-        <polygon points="35,42 5,78 65,78" fill="#37b26c"/>
-        <circle cx="20" cy="50" r="3" fill="#ffd166"/>
-        <circle cx="45" cy="36" r="3" fill="#ef476f"/>
-        <circle cx="37" cy="62" r="3" fill="#ffd166"/>
-      </svg>`,
-      gift: `<svg xmlns="http://www.w3.org/2000/svg" width="70" height="70" viewBox="0 0 70 70">
-        <rect x="8" y="18" width="54" height="42" rx="6" fill="#f75454"/>
-        <rect x="30" y="18" width="10" height="42" fill="#ffd166"/>
-        <rect x="8" y="34" width="54" height="10" fill="#ffd166"/>
-        <path d="M35 18 C15 4 25 22 25 22 C16 12 10 28 20 30 C24 20 32 20 35 30" fill="#ffd166"/>
-        <path d="M35 18 C55 4 45 22 45 22 C54 12 60 28 50 30 C46 20 38 20 35 30" fill="#ffd166"/>
-      </svg>`
-    };
-
-    const SPRITES_POOL = [
-      { type: 'img', src: 'snowman', label: 'Bonhomme de neige' },
-      { type: 'img', src: 'tree', label: 'Sapin enneigé' },
-      { type: 'img', src: 'gift', label: 'Cadeau' },
-      { type: 'text', content: '⛄️' },
-      { type: 'text', content: '🎁' },
-      { type: 'text', content: '🎄' },
-      { type: 'text', content: '⭐️' },
-      { type: 'text', content: '🍬' }
-    ];
-
-    const SPRITE_COUNT = 12;
-    const SPRITE_MAX_VISIBLE = 4;
-    const SPRITE_MIN_VISIBLE = 1;
-    const SPRITE_STEP_MIN = 4000;
-    const SPRITE_STEP_MAX = 9000;
-    let spritesLayer = null;
-    let spritesRegistry = [];
-    let spriteCycleTimer = null;
-    let nextSpriteAction = 'show';
-    const svgCache = {};
-
-    function encodeSvg(svg) {
-      return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
-    }
-
-    function ensureSpritesLayer() {
-      if (spritesLayer) {
-        return spritesLayer;
-      }
-      spritesLayer = document.createElement('div');
-      spritesLayer.className = 'sprites-layer';
-      spritesLayer.setAttribute('aria-hidden', 'true');
-
-      for (let i = 0; i < SPRITE_COUNT; i++) {
-        const spriteConf = SPRITES_POOL[Math.floor(Math.random() * SPRITES_POOL.length)];
-        const el = document.createElement('span');
-        el.className = 'sprite';
-        el.dataset.visible = 'false';
-        if (spriteConf.type === 'img') {
-          const img = document.createElement('img');
-          const key = spriteConf.src;
-          svgCache[key] = svgCache[key] || encodeSvg(SVG_ASSETS[key]);
-          img.src = svgCache[key];
-          img.alt = spriteConf.label;
-          el.appendChild(img);
-        } else {
-          el.textContent = spriteConf.content;
-        }
-        spritesLayer.appendChild(el);
-        spritesRegistry.push(el);
-      }
-
-      document.body.appendChild(spritesLayer);
-      return spritesLayer;
-    }
-
-    function randomizeSprite(el) {
-      el.style.left = `${Math.random() * 100}%`;
-      el.style.top = `${Math.random() * 100}%`;
-      el.style.setProperty('--duration', `${8 + Math.random() * 6}s`);
-      el.style.animationDelay = `${Math.random() * 5}s`;
-      el.style.setProperty('--rotation', `${-15 + Math.random() * 30}deg`);
-    }
-
-    function showSprite(el) {
-      if (!el || el.dataset.visible === 'true') {
-        return;
-      }
-      randomizeSprite(el);
-      el.dataset.visible = 'true';
-      el.classList.add('visible');
-    }
-
-    function hideSprite(el) {
-      if (!el || el.dataset.visible !== 'true') {
-        return;
-      }
-      el.dataset.visible = 'false';
-      el.classList.remove('visible');
-    }
-
-    function pickRandom(arr) {
-      if (!arr.length) {
-        return null;
-      }
-      return arr[Math.floor(Math.random() * arr.length)];
-    }
-
-    function planNextCycle() {
-      const delay = SPRITE_STEP_MIN + Math.random() * (SPRITE_STEP_MAX - SPRITE_STEP_MIN);
-      spriteCycleTimer = setTimeout(runSpriteStep, delay);
-    }
-
-    function runSpriteStep() {
-      const visible = spritesRegistry.filter(el => el.dataset.visible === 'true');
-      const hidden = spritesRegistry.filter(el => el.dataset.visible !== 'true');
-
-      if (visible.length <= SPRITE_MIN_VISIBLE) {
-        nextSpriteAction = 'show';
-      } else if (visible.length >= SPRITE_MAX_VISIBLE) {
-        nextSpriteAction = 'hide';
-      }
-
-      if (nextSpriteAction === 'show' && hidden.length) {
-        showSprite(pickRandom(hidden));
-      } else if (nextSpriteAction === 'hide' && visible.length) {
-        hideSprite(pickRandom(visible));
-      }
-
-      nextSpriteAction = nextSpriteAction === 'show' ? 'hide' : 'show';
-      planNextCycle();
-    }
-
-    function bootSprites() {
-      ensureSpritesLayer();
-      const initialCount = Math.min(SPRITE_MAX_VISIBLE, 2 + Math.floor(Math.random() * 2));
-      const pool = spritesRegistry.filter(el => el.dataset.visible !== 'true');
-      for (let i = 0; i < initialCount; i++) {
-        const sprite = pickRandom(pool);
-        if (!sprite) {
-          break;
-        }
-        showSprite(sprite);
-        const idx = pool.indexOf(sprite);
-        if (idx >= 0) {
-          pool.splice(idx, 1);
-        }
-      }
-      if (spriteCycleTimer) {
-        clearTimeout(spriteCycleTimer);
-      }
-      planNextCycle();
-    }
-
     // Initialize theme
     initializeTheme();
 
     // Lancement du minuteur et mise à jour immédiate
     setInterval(updateClock, 1000);
     updateClock();
-
-    // Sprites festifs avec apparition/disparition naturelle
-    bootSprites();
   </script>
 </body>
 </html>
